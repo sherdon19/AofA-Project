@@ -3,10 +3,6 @@
 
 # Retirement Investment Optimization Tool
 
-from flask import Flask, request, jsonify
-
-app = Flask(__name__)
-
 # Function 1: Fixed Growth Simulation
 def fixedInvestor(principal, rate, years):
     # Check for invalid inputs.
@@ -100,39 +96,65 @@ def maximumExpensed(balance, rate, max_years, tolerance=0.01, max_iterations=100
             high = mid
 
     return best
-    
-# --- Flask Routes ---
-@app.route("/fixed")
-def fixed_route():
-    principal = float(request.args.get("principal", 1000))
-    rate = float(request.args.get("rate", 0.05))
-    years = int(request.args.get("years", 10))
-    result = fixedInvestor(principal, rate, years)
-    return jsonify({"final_balance": round(result, 2)})
 
-@app.route("/variable")
-def variable_route():
-    principal = float(request.args.get("principal", 1000))
-    rates = request.args.getlist("rate", type=float)
-    result = variableInvestor(principal, rates)
-    return jsonify({"final_balance": round(result, 2)})
 
-@app.route("/retired")
-def retired_route():
-    balance = float(request.args.get("balance", 100000))
-    expense = float(request.args.get("expense", 10000))
-    rate = float(request.args.get("rate", 0.03))
-    years = int(request.args.get("years", 30))
-    result = finallyRetired(balance, expense, rate, years)
-    return jsonify({"years_lasted": result})
+# ~~~~~~~User-Friendly CLI Interface~~~~~~~
 
-@app.route("/optimal")
-def optimal_route():
-    balance = float(request.args.get("balance", 100000))
-    rate = float(request.args.get("rate", 0.03))
-    years = int(request.args.get("years", 30))
-    result = maximumExpensed(balance, rate, years)
-    return jsonify({"optimal_expense": round(result, 2)})
+def run_cli():
+    print("**** AofA Financial Services Ltd ****\n")
+    print("******** WELCOME TO THE RETIREMENT INVESTMENT TOOL ********")
 
+    while True:
+        print("\nChoose an option:")
+        print("1. Fixed Growth Simulation")
+        print("2. Variable Growth Simulation")
+        print("3. Retirement Depletion Simulation")
+        print("4. Optimal Withdrawal Calculation")
+        print("5. Exit")
+
+        choice = input("Enter a choice (1-5): ").strip()
+
+        if choice == "1":
+            p = float(input("Enter principal amount: "))
+            r = float(input("Enter annual interest rate (e.g., 0.05 for 5%): "))
+            y = int(input("Enter number of years: "))
+            result = fixedInvestor(p, r, y)
+            if result is not None:
+                print("Final Balance after", y, "years is:", round(result, 2))
+
+        elif choice == "2":
+            p = float(input("Enter principal amount: "))
+            n = int(input("Enter number of years: "))
+            rates = []
+            for i in range(n):
+                rate = float(input("Enter rate for year " + str(i + 1) + ": "))
+                rates.append(rate)
+            result = variableInvestor(p, rates)
+            if result is not None:
+                print("Final Balance after", n, "years is:", round(result, 2))
+
+        elif choice == "3":
+            b = float(input("Enter starting retirement balance: "))
+            e = float(input("Enter fixed annual withdrawal amount: "))
+            r = float(input("Enter expected annual return rate (decimal): "))
+            y = int(input("Enter maximum years to simulate: "))
+            result = finallyRetired(b, e, r, max_years=y)
+            print("Funds lasted", result, "years.")
+
+        elif choice == "4":
+            b = float(input("Enter starting retirement balance: "))
+            r = float(input("Enter expected annual return rate (decimal): "))
+            y = int(input("Enter target number of retirement years: "))
+            result = maximumExpensed(b, r, y)
+            print("Estimated maximum sustainable annual expense:", round(result, 2))
+
+        elif choice == "5":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please enter a number from 1 to 5.")
+
+
+# Run the program
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    run_cli()
